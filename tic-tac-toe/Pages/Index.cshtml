@@ -1,0 +1,157 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Tic Tac Toe</h1>
+    <br />
+    <div class="text-center" style="display:block;">
+        <div id="dimention">
+            <label>Pick Dimention:</label><input id="test" style="margin-left:10px;" />
+        </div>
+        <div style="margin-top:3rem;"></div>
+        <div id="mainSq" style="display:none;">
+
+        </div>
+        <div style="float:right;"><a class="k-button" onclick="restart();">Restart</a></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var restart = function () {
+        window.location.reload();
+        sessionStorage.clear();
+    };
+    $(function () {
+        $('#test').kendoDropDownList({
+            dataSource: [{ v: 3, name: '3*3' }, { v: 4, name: '4*4' }, { v: 6, name: '6*6' }, { v: 8, name: '8*8' }, { v: 10, name: '10*10' },],
+            dataValueField: 'v',
+            dataTextField: 'name',
+            autoWidth: true,
+            optionLabel: '- Dimention -',
+            change: function (e) {
+                var val = $('#test').data('kendoDropDownList').dataItem().v;
+                createBoard(val);
+            }
+        });
+
+        var createBoard = function (v) {
+            var $main = $('#mainSq');
+            $main.removeClass('mainSq');
+            $main.empty();
+            //init player
+            var player = 1;
+            var count = 0;
+            var r = [];
+            var c = [];
+            for (var z = 0; z < v; z++) {
+                r.push(0);
+                c.push(0);
+            }
+            var diag = 0;
+            var antiDiag = 0;
+
+            //use session storage
+            
+            sessionStorage.setItem('diag', 0);
+            sessionStorage.setItem('antiDiag', 0);
+            sessionStorage.setItem('player', 1);
+            sessionStorage.setItem('count', 0);
+            sessionStorage.setItem('r', JSON.stringify(r));
+            sessionStorage.setItem('c', JSON.stringify(c));
+
+            setTimeout(function () {
+                $main.show();
+                var size = 3 * v + .2 + 'rem';
+                $main.css('width', size);
+                $main.css('height', size);
+                $main.addClass('mainSq');
+                for (var i = 0; i < v; i++) {
+                    for (var j = 0; j < v; j++) {
+                        $main.append('<div data-row=' + i + ' data-col=' + j + ' class="square"></div>');
+                        $('.square').unbind('click');
+                        $('.square').bind('click', function () {
+                            console.log('click');
+
+                            //tic tac toe algorithm
+
+                            var currentrow = parseInt($(this).attr('data-row'));
+                            var currentcol = parseInt($(this).data('col'));
+                            var num = parseInt(sessionStorage.player) == 1 ? 1 : -1;
+                            var mark = parseInt(sessionStorage.player) == 1 ? 'X' : 'O';
+                            sessionStorage.setItem('count', parseInt(sessionStorage.count) + 1);
+                            $(this).text(mark);
+                            var rr = JSON.parse(sessionStorage.r);
+                            rr[currentrow] = parseInt(rr[currentrow]) + num;
+                            sessionStorage.setItem('r', JSON.stringify(rr));
+
+                            var cc = JSON.parse(sessionStorage.c);
+                            cc[currentcol] = parseInt(cc[currentcol]) + num;
+                            sessionStorage.setItem('c', JSON.stringify(cc));
+
+                           
+                            //r[currentrow] += num;
+                            //c[currentcol] += num;
+                            if (currentcol == currentrow)
+                                sessionStorage.setItem('diag', parseInt(sessionStorage.diag) + num);
+                                //diag += num;
+                            if (currentrow + currentcol == v - 1)
+                                sessionStorage.setItem('antiDiag', parseInt(sessionStorage.antiDiag) + num);
+                            var result = '';
+                            if (parseInt(JSON.parse(sessionStorage.r)[currentrow]) == v || parseInt(JSON.parse(sessionStorage.c)[currentcol]) == v || parseInt(sessionStorage.diag) == v || parseInt(sessionStorage.antiDiag) == v) {
+                                result = 'Player 1 wins the game';
+                                alert(result);
+                                return false;
+                            }
+
+                            if (parseInt(JSON.parse(sessionStorage.r)[currentrow]) == -v || parseInt(JSON.parse(sessionStorage.c)[currentcol]) == -v || parseInt(sessionStorage.diag) == -v || parseInt(sessionStorage.antiDiag) == -v) {
+                                result = 'Player 2 wins the game';
+                                alert(result);
+                                return false;
+                            }
+                            else {
+                                if (parseInt(sessionStorage.count) == v * v) {
+                                    result = 'Tie';
+                                    alert('Tie');
+                                }
+                            }
+
+                            //switch player
+                            sessionStorage.setItem('player', parseInt(sessionStorage.player) == 1 ? 2 : 1);
+
+                        });
+                    }
+
+                }
+            }, 100);
+
+
+
+        };
+
+    });
+
+
+</script>
+<style>
+    .mainSq {
+        /*padding:2rem;*/
+        margin: auto;
+        border: 1px solid black;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .square {
+        width: 3rem;
+        height: 3rem;
+        border: 1px solid black;
+    }
+
+        .square:hover {
+            background-color: aquamarine;
+            cursor: pointer;
+        }
+</style>
